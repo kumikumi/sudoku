@@ -21,6 +21,11 @@ td input {
 	font-size: 30px;
 	border-radius: 0;
 }
+
+td input:disabled {
+	opacity: 0.8;
+}
+
 td:first-child {
   border-left:solid;
 }
