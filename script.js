@@ -1,7 +1,7 @@
 //a 2d array that contains the text input fields
 var grid;
 
-//gather the elements into the grid variable for quick and easy access
+//gather the elements into 2d array for quick and easy access
 window.onload = function() {
 	grid = Array();
 	var rows = document.getElementById("grid").children;
@@ -25,6 +25,9 @@ function solve() {
 		console.log("has conflicts");
 		return;
 	}
+
+	disableGridInputs();
+
 	if (!solveFrom(0, 0)) {
 		console.log("could not solve");
 	}
@@ -43,6 +46,7 @@ function clearGrid() {
 		for (var x = 0; x<9; x++) {
 			grid[y][x].value = "";
 			grid[y][x].className = "";
+			grid[y][x].disabled = false;
 		}
 	}
 }
@@ -54,6 +58,15 @@ function clearSolution() {
 				grid[y][x].value = "";
 				grid[y][x].className = "";
 			}
+			grid[y][x].disabled = false;
+		}
+	}
+}
+
+function disableGridInputs() {
+	for (var y = 0; y<9; y++) {
+		for (var x = 0; x<9; x++) {
+			grid[y][x].disabled = true;
 		}
 	}
 }
@@ -86,17 +99,9 @@ function isValid(value) {
 
 //recursive solve function, attempts to solve from (x, y) onwards. returns true if successful and false if unsuccessful.
 function solveFrom(x, y) {
-	//If we are at the last place, we can determine if we've solved this sudoku successfully
-	if (x == 8 && y == 8) {
-		if (grid[y][x].provided) {
-			return true;
-		}
-		var n = nextNumberThatFitsIn(x, y, 0);
-		if (n) {
-			grid[y][x].value = n;
-			return true;
-		}
-		return false;
+	//If we are over the grid already, we can call this solved
+	if (y == 9) {
+		return true;
 	}
 
 	//Figure out the coordinates for the next place
@@ -115,18 +120,19 @@ function solveFrom(x, y) {
 		return solveFrom(next_x, next_y);
 	}
 
-	//Iterate through numbers that fit here until a solution is found
-	var n = nextNumberThatFitsIn(x, y, 0);
-	grid[y][x].value = n;
-
-	while (n != null) {
+	//Iterate through numbers that fit here until one that leads to a solution is found
+	for (var n = 1; n<=9; n++) {
+		if(!numberFitsInPosition(x, y, n)) {
+			continue;
+		}
+		grid[y][x].value = n;
 		if (solveFrom(next_x, next_y)) {
 			return true;
 		}
-		n = nextNumberThatFitsIn(x, y, n);
-		grid[y][x].value = n;
 	}
+	
 	//If no solution was found, this attempt failed
+	grid[y][x].value = "";
 	return false;
 }
 
@@ -142,16 +148,6 @@ function hasConflicts() {
 		}
 	}
 	return conflictsDetected;
-}
-
-// returns the first number after 'previous' that fits in position (pos_x, pos_y) and returns null if no such number exists
-function nextNumberThatFitsIn(pos_x, pos_y, previous) {
-	for (var i = previous+1; i<=9; i++) {
-		if(numberFitsInPosition(pos_x, pos_y, i)) {
-			return i;
-		}
-	}
-	return null;
 }
 
 //returns whether a number 'n' fits into position (pos_x, pos_y)
